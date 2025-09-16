@@ -1,0 +1,48 @@
+# My Blog Project - Files to Ignore
+
+# Don't upload node modules folder (it's huge!)
+node_modules/
+
+# Don't upload error logs
+*.log
+npm-debug.log*
+
+# Don't upload my secret environment files
+.env
+.env.local
+
+# Don't upload build folders
+build/
+dist/
+
+# Don't upload my IDE settings
+.vscode/
+.idea/
+
+# Don't upload OS files
+.DS_Store
+Thumbs.db
+
+# Don't upload database files
+*.db
+*.sqlite
+
+# Don't upload temporary files
+*.tmp
+*.temp
+
+# Don't upload package lock files
+package-lock.json
+yarn.lock
+
+# Don't upload uploaded images folder
+uploads/
+images/
+
+# Don't upload coverage reports
+coverage/
+
+# Other random files I don't need
+.cache/
+*.swp
+*~
