@@ -171,6 +171,4 @@ For any questions regarding this assignment:
 - **Email**: careers@mittarv.com
 - **Assignment Form**: [Google Form Link](https://forms.gle/EWH3myNnE98qRxA58)
 
----
-
-*Built with ❤️ for Mitt Arv Technologies - Transforming Legacy Planning*
+ 
