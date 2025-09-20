@@ -1,0 +1,81 @@
+@use './variables.scss' as *;
+
+// Global reset and base styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $font-family;
+  font-size: $font-size-md;
+  font-weight: $font-weight-normal;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--background);
+  
+  // Twitter-style background pattern (subtle)
+  background-image: radial-gradient(circle at 1px 1px, rgba(29, 161, 242, 0.03) 1px, transparent 0);
+  background-size: 20px 20px;
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
+  
+  // Better font rendering
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Link styles
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: var(--secondary);
+  }
+}
+
+// Button base styles
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Form elements
+input, textarea {
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  transition: border-color 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+}
+
+// Utility classes
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }

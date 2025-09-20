@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BloGo - Blog Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Feather Icons CDN - Add this -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+      // Initialize icons when loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.feather) {
+          window.feather.replace();
+        }
+      });
+    </script>
+  </body>
+</html>

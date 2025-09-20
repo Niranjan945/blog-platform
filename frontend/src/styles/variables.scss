@@ -1,0 +1,67 @@
+// Your beautiful Twitter-inspired color palette
+:root {
+  // Core Background & Text - Twitter-style
+  --bg-soft-ivory: #FAFAFA;         
+  --bg-secondary: #F7F9FA;         
+  --text-charcoal: #0F1419;        
+  
+  // Primary Accent  
+  --accent-teal: #1DA1F2;          
+  
+  // Secondary Accent
+  --accent-sienna: #E1306C;        
+  
+  // Supporting Neutrals - Twitter-style
+  --border-gray: #E1E8ED;          
+  --card-mist: #FFFFFF;            
+  --text-secondary: #657786;       
+  
+  // Semantic colors
+  --primary: var(--accent-teal);
+  --secondary: var(--accent-sienna);
+  --background: var(--bg-soft-ivory);
+  --text-primary: var(--text-charcoal);
+  --border: var(--border-gray);
+  --surface: var(--card-mist);
+}
+
+// Typography
+$font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+$font-weight-extra-bold: 700;
+
+// Font sizes
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 2rem;
+
+// Spacing system
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+
+// Border radius
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 16px;
+$radius-full: 9999px;
+
+// Shadows - Twitter-style
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+$shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+$shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10);
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
