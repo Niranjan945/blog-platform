@@ -77,3 +77,23 @@ connectDB().then(() => {
   console.error('Failed to start server:', error);
   process.exit(1);
 });
+
+// Add this at the bottom of your server.js file
+const keepServerAwake = () => {
+  const serverUrl = 'https://blog-platform-k0qz.onrender.com';
+  
+  setInterval(async () => {
+    try {
+      const response = await fetch(`${serverUrl}/health`);
+      console.log(`Keep-alive ping: ${response.status}`);
+    } catch (error) {
+      console.log('Keep-alive ping failed:', error.message);
+    }
+  }, 14 * 60 * 1000); // Ping every 14 minutes
+};
+
+// Start keep-alive only in production
+if (process.env.NODE_ENV === 'production') {
+  keepServerAwake();
+  console.log('🔄 Keep-alive service started');
+}
