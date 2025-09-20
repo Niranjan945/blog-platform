@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://blog-platform-k0qz.onrender.com/api/:path*"
+    }
+  ]
+}
