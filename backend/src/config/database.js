@@ -2,17 +2,17 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    console.log('🔄 Attempting to connect to MongoDB...');
-    console.log('📍 Connection string:', process.env.DB_URI ? 'Found' : 'Missing');
-    
-    await mongoose.connect(process.env.DB_URI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser:    true,
+      useUnifiedTopology: true,
+      ssl:                true,
+      // If you still have issues, you can temporarily disable strict cert checking:
+      // sslValidate:       false,
+      // tlsAllowInvalidCertificates: true,
     });
-    
-    console.log('✅ MongoDB connected successfully');
-  } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
-    console.error('🔍 Full error:', err);
+    console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error);
     process.exit(1);
   }
 };

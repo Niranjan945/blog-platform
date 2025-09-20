@@ -133,55 +133,81 @@ function UserProfile() {
     }
   };
 
- // Just the handleEditSubmit function needs this fix:
-const handleEditSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/users/profile', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(editForm)
-    });
-
-    const data = await response.json();
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     
-    if (response.ok) {
-      // Update profile data
-      setProfileData(prev => ({
-        ...prev,
-        user: data.profile
-      }));
-      
-      // Update current user for global state
-      setCurrentUser(data.profile);
-      
-      // Dispatch the event AFTER state updates
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('userProfileUpdated', { 
-          detail: data.profile 
-        }));
-      }, 100);
-      
-      setIsEditMode(false);
-      setPreviewImage(null);
-      showNotification('Profile updated successfully!', 'success');
-    } else {
-      showNotification(data.error || 'Failed to update profile', 'error');
-    }
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    showNotification('Connection error. Please try again.', 'error');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editForm)
+      });
 
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Update profile data
+        setProfileData(prev => ({
+          ...prev,
+          user: data.profile
+        }));
+        
+        // Update current user for global state
+        setCurrentUser(data.profile);
+        
+        // Dispatch the event AFTER state updates
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('userProfileUpdated', { 
+            detail: data.profile 
+          }));
+        }, 100);
+        
+        setIsEditMode(false);
+        setPreviewImage(null);
+        showNotification('Profile updated successfully!', 'success');
+      } else {
+        showNotification(data.error || 'Failed to update profile', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showNotification('Connection error. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // FIXED: Handle post deletion
+  const handlePostDelete = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        // Remove post from the posts array
+        setProfileData(prev => ({
+          ...prev,
+          posts: prev.posts.filter(post => post._id !== postId)
+        }));
+        showNotification('Post deleted successfully!', 'success');
+      } else {
+        const data = await response.json();
+        showNotification(data.error || 'Failed to delete post', 'error');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      showNotification('Network error. Please try again.', 'error');
+    }
+  };
 
   const showNotification = (message, type) => {
     setNotification({ show: true, message, type });
@@ -577,7 +603,9 @@ const handleEditSubmit = async (e) => {
                   <PostCard 
                     key={post._id} 
                     post={post} 
-                    navigate={navigate} 
+                    navigate={navigate}
+                    isOwnProfile={isOwnProfile}
+                    onDelete={handlePostDelete}
                   />
                 ))}
               </div>
@@ -618,48 +646,155 @@ const handleEditSubmit = async (e) => {
   );
 }
 
-// Enhanced Post Card
-function PostCard({ post, navigate }) {
+// FIXED: Enhanced Post Card with Proper Delete Functionality
+function PostCard({ post, navigate, isOwnProfile, onDelete }) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(post._id);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="post-thumbnail" onClick={() => navigate(`/post/${post._id}`)}>
-      <div className="post-overlay">
-        <div className="post-stats">
-          <span className="stat">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            {post.likes || 0}
-          </span>
-          <span className="stat">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
-            </svg>
-            0
-          </span>
+    <>
+      <div className="post-thumbnail">
+        {/* Main post content - clickable */}
+        <div 
+          className="post-content-area"
+          onClick={() => navigate(`/post/${post._id}`)}
+        >
+          <div className="post-overlay">
+            <div className="post-stats">
+              <span className="stat">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                {post.likes || 0}
+              </span>
+              <span className="stat">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
+                </svg>
+                {post.comments || 0}
+              </span>
+            </div>
+          </div>
+          
+          <div className="post-content">
+            <h4 className="post-title">{post.title}</h4>
+            <p className="post-excerpt">
+              {post.content.length > 80 
+                ? post.content.substring(0, 80) + '...' 
+                : post.content}
+            </p>
+            <div className="post-meta">
+              <span className="post-date">
+                {new Date(post.createdAt).toLocaleDateString()}
+              </span>
+              {post.tags && post.tags.length > 0 && (
+                <div className="post-tags">
+                  {post.tags.slice(0, 2).map((tag, index) => (
+                    <span key={index} className="tag">#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Delete Button - separate from clickable area */}
+        {isOwnProfile && (
+          <button 
+            className="delete-post-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteModal(true);
+            }}
+            title="Delete post"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="m19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+     {showDeleteModal && (
+  <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+    <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>Delete Post</h3>
+        <button 
+          className="modal-close"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
-      <div className="post-content">
-        <h4 className="post-title">{post.title}</h4>
-        <p className="post-excerpt">
-          {post.content.length > 80 
-            ? post.content.substring(0, 80) + '...' 
-            : post.content}
-        </p>
-        <div className="post-meta">
-          <span className="post-date">
-            {new Date(post.createdAt).toLocaleDateString()}
-          </span>
-          {post.tags && post.tags.length > 0 && (
-            <div className="post-tags">
-              {post.tags.slice(0, 2).map((tag, index) => (
-                <span key={index} className="tag">#{tag}</span>
-              ))}
-            </div>
-          )}
+      <div className="modal-body">
+        <div className="warning-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
         </div>
+        
+        <h4>Are you sure?</h4>
+        <p>
+          "<strong>{post.title}</strong>" will be permanently deleted. 
+          This action cannot be undone.
+        </p>
+      </div>
+      
+      <div className="modal-footer">
+        <button 
+          className="cancel-btn"
+          onClick={() => setShowDeleteModal(false)}
+          disabled={isDeleting}
+        >
+          Cancel
+        </button>
+        <button 
+          className="delete-confirm-btn"
+          onClick={handleDeleteClick}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <>
+              <div className="spinner-small"></div>
+              Deleting...
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="m19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Delete Post
+            </>
+          )}
+        </button>
       </div>
     </div>
+  </div>
+)}
+
+    </>
   );
 }
 
