@@ -6,15 +6,14 @@ const postSchema = new mongoose.Schema({
         type:String,
         required:[true,'Title must be provided'],
         trim:true,
-        minlength:[5,'Title should be greater than 5 valid characters'],
+        minlength:[3,'Title should be greater than 5 valid characters'],
         maxlength:[100,'Title should not exceed 100 characters']
     },
     content : {
         type:String,
         required:[true,'content cant be empty.. '],
-        trim:true,
-        minlength :[10,"Minimum content should be 10 characters"],
-        maxlength :[1000,"Cannot upload content of more than 1000 characters..."]
+        minlength :[5,"Minimum content should be 10 characters"],
+        maxlength :[100000,"Cannot upload content of more than 1000 characters..."]
     },
     authorId :{
         type:mongoose.Schema.Types.ObjectId,
