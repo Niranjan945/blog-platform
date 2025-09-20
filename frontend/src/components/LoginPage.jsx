@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LoginPage.scss';
+import API_BASE_URL from '../config/api.js';
 
 function LoginPage({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,8 +24,8 @@ function LoginPage({ onLogin }) {
     
     try {
       const url = isLogin 
-        ? 'http://localhost:5000/api/auth/login'
-        : 'http://localhost:5000/api/auth/register';
+         ? `${API_BASE_URL}/api/auth/login`
+         : `${API_BASE_URL}/api/auth/register`;
         
       const response = await fetch(url, {
         method: 'POST',

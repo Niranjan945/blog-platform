@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './UserProfile.scss';
+import API_BASE_URL from '../config/api.js';
 
 function UserProfile() {
   const { userId } = useParams();
@@ -31,7 +32,7 @@ function UserProfile() {
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -56,7 +57,7 @@ function UserProfile() {
       
       if (isOwnProfile) {
         // Get own profile with full data
-        const response = await fetch('http://localhost:5000/api/users/profile', {
+        const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -75,7 +76,7 @@ function UserProfile() {
         }
       } else {
         // Get other user's public profile
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
         const data = await response.json();
         
         if (response.ok) {
@@ -139,7 +140,7 @@ function UserProfile() {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ function UserProfile() {
   const handlePostDelete = async (postId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

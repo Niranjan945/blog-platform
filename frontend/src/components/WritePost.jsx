@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './WritePost.scss';
+import API_BASE_URL from '../config/api.js';
 
 function WritePost({ onClose, onPostCreated }) {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ function WritePost({ onClose, onPostCreated }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/posts', {
+      const response = await fetch(`${API_BASE_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

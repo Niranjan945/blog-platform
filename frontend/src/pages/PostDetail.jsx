@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './PostDetail.scss';
+import API_BASE_URL from '../config/api.js';
 
 function PostDetail() {
   const { postId } = useParams();
@@ -16,7 +17,7 @@ function PostDetail() {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}`);
+      const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -31,7 +32,7 @@ function PostDetail() {
 
   const fetchRelatedPosts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/posts?limit=3');
+      const response = await fetch(`${API_BASE_URL}/api/posts?limit=3`);
       const data = await response.json();
       if (response.ok) {
         setRelatedPosts(data.posts.filter(p => p._id !== postId).slice(0, 3));

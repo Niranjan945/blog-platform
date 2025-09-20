@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.scss';
+import API_BASE_URL from '../config/api.js';
 
 function HomePage({ refreshTrigger }) {
   const [posts, setPosts] = useState([]);
@@ -25,7 +26,7 @@ function HomePage({ refreshTrigger }) {
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -39,7 +40,7 @@ function HomePage({ refreshTrigger }) {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/posts');
+      const response = await fetch(`${API_BASE_URL}/api/posts`);
       const data = await response.json();
       if (response.ok) {
         let sortedPosts = data.posts || [];
@@ -62,7 +63,7 @@ function HomePage({ refreshTrigger }) {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/posts');
+      const response = await fetch(`${API_BASE_URL}/api/posts`);
       const data = await response.json();
       if (response.ok) {
         const totalViews = (data.posts || []).reduce((sum, post) => sum + (post.views || 0), 0);
@@ -297,7 +298,7 @@ function PostCard({ post, navigate, currentUserId }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/posts/${post._id}/like`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${post._id}/like`, {
         method: liked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -318,7 +319,7 @@ function PostCard({ post, navigate, currentUserId }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/posts/${post._id}/bookmark`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${post._id}/bookmark`, {
         method: bookmarked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

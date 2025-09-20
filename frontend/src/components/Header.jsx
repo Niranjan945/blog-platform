@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Header.scss';
 import WritePost from './WritePost';
+import API_BASE_URL from '../config/api.js';
 
 function Header({ onLogout, onPostCreated }) {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ function Header({ onLogout, onPostCreated }) {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/users/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -64,7 +65,7 @@ function Header({ onLogout, onPostCreated }) {
   const fetchUserPosts = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/posts/me', {
+      const response = await fetch(`${API_BASE_URL}/api/users/posts/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -80,7 +81,7 @@ function Header({ onLogout, onPostCreated }) {
 
   const handleSearch = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/posts');
+      const response = await fetch(`${API_BASE_URL}/api/posts`);
       const data = await response.json();
       
       if (response.ok) {
