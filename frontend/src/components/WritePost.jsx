@@ -9,26 +9,32 @@ function WritePost({ onClose, onPostCreated }) {
     tags: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({}); // Add error state
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrors({}); // Clear previous errors
+    setErrors({});
 
     try {
       const token = localStorage.getItem('token');
+      
+      // Prepare data - don't trim content to preserve formatting
+      const postData = {
+        title: formData.title,
+        content: formData.content, // Keep original formatting
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      };
+
+      console.log('Sending post data:', postData); // Debug log
+
       const response = await fetch(`${API_BASE_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          title: formData.title,
-          content: formData.content,
-          tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
-        })
+        body: JSON.stringify(postData)
       });
 
       if (response.ok) {
@@ -36,12 +42,10 @@ function WritePost({ onClose, onPostCreated }) {
         onPostCreated();
         onClose();
       } else {
-        // Handle validation errors
         const errorData = await response.json();
-        console.log('Error response:', errorData);
+        console.log('Full error response:', errorData);
         
         if (errorData.errors) {
-          // Handle Mongoose validation errors
           const validationErrors = {};
           Object.keys(errorData.errors).forEach(field => {
             validationErrors[field] = errorData.errors[field].message;
@@ -57,6 +61,15 @@ function WritePost({ onClose, onPostCreated }) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Function to get actual character count (excluding only leading/trailing whitespace)
+  const getContentLength = () => {
+    return formData.content.length;
+  };
+
+  const getMeaningfulContentLength = () => {
+    return formData.content.trim().length;
   };
 
   return (
@@ -97,7 +110,12 @@ function WritePost({ onClose, onPostCreated }) {
               onChange={(e) => setFormData({...formData, content: e.target.value})}
               className={errors.content ? 'error' : ''}
               required
-              rows="6"
+              rows="8"
+              style={{
+                fontFamily: 'monospace',
+                lineHeight: '1.5',
+                whiteSpace: 'pre-wrap' // Preserve formatting
+              }}
             ></textarea>
             {errors.content && (
               <div className="error-message">
@@ -105,7 +123,8 @@ function WritePost({ onClose, onPostCreated }) {
               </div>
             )}
             <small className="field-hint">
-              {formData.content.length}/100000 characters
+              Total: {getContentLength()}/50000 characters | 
+              Meaningful: {getMeaningfulContentLength()} characters
             </small>
           </div>
           

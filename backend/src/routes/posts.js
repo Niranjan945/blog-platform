@@ -71,25 +71,44 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+
 // POST /api/posts - Creating a new post - access:private
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { title, content, tags, image } = req.body;
     
+    // Basic required field check
     if(!title || !content){
       return res.status(400).json({
         error:'Title and content are required'
       });
     }
 
+    // Check if content has meaningful characters (not just spaces)
+    if(content.trim().length < 5) {
+      return res.status(400).json({
+        error:'Content must contain at least 5 meaningful characters'
+      });
+    }
+
+    // Process tags - handle string or array
+    let processedTags = [];
+    if (tags) {
+      if (typeof tags === 'string') {
+        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      } else if (Array.isArray(tags)) {
+        processedTags = tags.filter(tag => tag && tag.trim());
+      }
+    }
+
     const newPost = new Post({
-      title,
+      title: title.trim(), 
       content, 
-      authorId: req.user._id,        // From middleware
-      authorName: req.user.name,     // From middleware
-      tags: tags || [],              // Default empty array
-      image: image || '',            // Default empty string
-      likes: 0,                      // Start with 0
+      authorId: req.user._id,
+      authorName: req.user.name,
+      tags: processedTags,
+      image: image || '',
+      likes: 0,
       views: 0  
     });
 
@@ -103,20 +122,19 @@ router.post('/', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error creating post:', error);
     
-    // Handle validation errors - UPDATED TO RETURN PROPER FORMAT
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'Validation failed',
-        errors: error.errors  // This will contain field-specific errors
+        errors: error.errors
       });
     }
 
-    // Handle other errors
     return res.status(500).json({
       error: 'Error while creating post'
     });
   }
 });
+
 
 // PUT /api/posts/:id - route for editing the post - access:private
 router.put('/:id', authenticateToken, async (req, res) => {

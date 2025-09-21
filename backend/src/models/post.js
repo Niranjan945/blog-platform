@@ -1,51 +1,55 @@
 const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema({
-    
-    title:{
-        type:String,
-        required:[true,'Title must be provided'],
-        trim:true,
-        minlength:[3,'Title should be greater than 5 valid characters'],
-        maxlength:[100,'Title should not exceed 100 characters']
+    title: {
+        type: String,
+        required: [true, 'Title must be provided'],
+        trim: true,
+        minlength: [3, 'Title should be at least 3 characters long'],
+        maxlength: [100, 'Title should not exceed 100 characters']
     },
-    content : {
-        type:String,
-        required:[true,'content cant be empty.. '],
-        minlength :[5,"Minimum content should be 10 characters"],
-        maxlength :[100000,"Cannot upload content of more than 1000 characters..."]
+    content: {
+        type: String,
+        required: [true, 'Content cannot be empty'],
+        // REMOVED trim: true to preserve formatting
+        minlength: [5, "Content should be at least 5 characters long"],
+        maxlength: [50000, "Content cannot exceed 50,000 characters"], // Increased limit
+        validate: {
+            validator: function(v) {
+                // Custom validator to handle whitespace-only content
+                return v && v.trim().length >= 5;
+            },
+            message: 'Content must contain at least 5 non-whitespace characters'
+        }
     },
-    authorId :{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref:'User'
+    authorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     },
-    authorName :{
-        type:String,
-        required:true,
-        trim:true
+    authorName: {
+        type: String,
+        required: true,
+        trim: true
     },
-    tags:{
-        type:[String],
-        default:[],
-        validate: 
-        {
-             validator: (arr) => arr.length <= 10,
-             message: 'A post cannot have more than 10 tags'
+    tags: {
+        type: [String],
+        default: [],
+        validate: {
+            validator: (arr) => arr.length <= 10,
+            message: 'A post cannot have more than 10 tags'
         }
     },
     image: {
-          type: String,
-          default: '',
-          validate: {
-                  validator: val => {
-                 // Allow empty string or valid URL
-                  return val === '' || /^(https?:\/\/[^\s$.?#].[^\s]*)$/i.test(val);
-                  },
-                 message: 'Image must be a valid URL'
-           }
-     },
-
+        type: String,
+        default: '',
+        validate: {
+            validator: val => {
+                return val === '' || /^(https?:\/\/[^\s$.?#].[^\s]*)$/i.test(val);
+            },
+            message: 'Image must be a valid URL'
+        }
+    },
     likes: {
         type: Number,
         default: 0,
@@ -55,18 +59,15 @@ const postSchema = new mongoose.Schema({
         }
     },
     views: {
-       type: Number,
-       default: 0,
-       validate: {
+        type: Number,
+        default: 0,
+        validate: {
             validator: val => val >= 0,
             message: 'Views cannot be negative'
         }
-     }
+    }
+}, {
+    timestamps: true
+});
 
-},{
-    timestamps:true
-}
-
-);
-
-module.exports=mongoose.model('Post',postSchema);
+module.exports = mongoose.model('Post', postSchema);
