@@ -71,39 +71,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-
-
 // POST /api/posts - Creating a new post - access:private
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { title, content, tags, image } = req.body;
     
-    // Basic validation
-    if (!title || !content) {
+    if(!title || !content){
       return res.status(400).json({
-        error: 'Title and content are required'
+        error:'Title and content are required'
       });
     }
 
-    // Simple tag processing
+    // Process tags properly
     let processedTags = [];
     if (tags) {
       if (typeof tags === 'string') {
         processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
       } else if (Array.isArray(tags)) {
-        processedTags = tags;
+        processedTags = tags.filter(tag => tag && tag.trim());
       }
     }
 
-    console.log('Creating post with data:', {
-      title: title.length,
-      content: content.length,
-      tags: processedTags.length
-    });
-
     const newPost = new Post({
       title,
-      content,
+      content, 
       authorId: req.user._id,
       authorName: req.user.name,
       tags: processedTags,
@@ -113,7 +104,6 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     const savePost = await newPost.save();
-    console.log('Post saved successfully:', savePost._id);
 
     return res.status(201).json({
       message: 'Post created successfully',
@@ -122,25 +112,19 @@ router.post('/', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Error creating post:', error);
-    console.error('Error details:', error.message);
     
     if (error.name === 'ValidationError') {
-      console.error('Validation errors:', error.errors);
       return res.status(400).json({
         error: 'Validation failed',
-        errors: error.errors,
-        details: error.message
+        errors: error.errors
       });
     }
 
     return res.status(500).json({
-      error: 'Error while creating post',
-      details: error.message
+      error: 'Error while creating post'
     });
   }
 });
-
-
 
 // PUT /api/posts/:id - route for editing the post - access:private
 router.put('/:id', authenticateToken, async (req, res) => {
@@ -171,17 +155,27 @@ router.put('/:id', authenticateToken, async (req, res) => {
       });
     }
 
+    // Process tags for update
+    let processedTags = existingPost.tags;
+    if (tags !== undefined) {
+      if (typeof tags === 'string') {
+        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      } else if (Array.isArray(tags)) {
+        processedTags = tags.filter(tag => tag && tag.trim());
+      }
+    }
+
     const updatedPost = await Post.findByIdAndUpdate(
       id,
       {
         title: title.trim(),
-        content: content.trim(), 
-        tags: tags || existingPost.tags,        // Keep old tags if none provided
-        image: image !== undefined ? image : existingPost.image  // Keep old image if none provided
+        content, // Don't trim content to preserve formatting
+        tags: processedTags,
+        image: image !== undefined ? image : existingPost.image
       },
       { 
-        new: true,           // Return updated document
-        runValidators: true  // Run schema validations
+        new: true,
+        runValidators: true
       }
     );
 
@@ -193,11 +187,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error updating post:', error);
     
-    // Handle validation errors - UPDATED TO RETURN PROPER FORMAT
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'Validation failed',
-        errors: error.errors  // This will contain field-specific errors
+        errors: error.errors
       });
     }
 

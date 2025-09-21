@@ -5,15 +5,14 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Title must be provided'],
         trim: true,
-        minlength: [1, 'Title cannot be empty'],
-        maxlength: [200, 'Title should not exceed 200 characters']
+        minlength: [3, 'Title should be at least 3 characters'],
+        maxlength: [100, 'Title should not exceed 100 characters']
     },
     content: {
         type: String,
         required: [true, 'Content cannot be empty'],
-        // Remove all validation except required
-        minlength: [1, "Content cannot be empty"]
-        // Remove maxlength temporarily to test
+        minlength: [5, "Content should be at least 5 characters"],
+        maxlength: [50000, "Content cannot exceed 50,000 characters"]
     },
     authorId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -27,21 +26,37 @@ const postSchema = new mongoose.Schema({
     },
     tags: {
         type: [String],
-        default: []
-        // Remove validation temporarily
+        default: [],
+        validate: {
+            validator: (arr) => arr.length <= 10,
+            message: 'A post cannot have more than 10 tags'
+        }
     },
     image: {
         type: String,
-        default: ''
-        // Remove validation temporarily
+        default: '',
+        validate: {
+            validator: val => {
+                return val === '' || /^(https?:\/\/[^\s$.?#].[^\s]*)$/i.test(val);
+            },
+            message: 'Image must be a valid URL'
+        }
     },
     likes: {
         type: Number,
-        default: 0
+        default: 0,
+        validate: {
+            validator: val => val >= 0,
+            message: 'Likes cannot be negative'
+        }
     },
     views: {
         type: Number,
-        default: 0
+        default: 0,
+        validate: {
+            validator: val => val >= 0,
+            message: 'Views cannot be negative'
+        }
     }
 }, {
     timestamps: true
