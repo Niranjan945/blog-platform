@@ -42,19 +42,24 @@ function WritePost({ onClose, onPostCreated }) {
         onPostCreated();
         onClose();
       } else {
-        const errorData = await response.json();
-        console.log('Full error response:', errorData);
-        
-        if (errorData.errors) {
-          const validationErrors = {};
-          Object.keys(errorData.errors).forEach(field => {
-            validationErrors[field] = errorData.errors[field].message;
-          });
-          setErrors(validationErrors);
-        } else {
-          alert(errorData.error || 'Failed to create post');
-        }
-      }
+  const errorData = await response.json();
+  console.log('Full error response:', errorData);
+  console.log('Response status:', response.status);
+  
+  // Show the exact error in an alert for debugging
+  alert(`Error: ${JSON.stringify(errorData, null, 2)}`);
+  
+  if (errorData.errors) {
+    const validationErrors = {};
+    Object.keys(errorData.errors).forEach(field => {
+      validationErrors[field] = errorData.errors[field].message;
+    });
+    setErrors(validationErrors);
+  } else {
+    alert(errorData.error || 'Failed to create post');
+  }
+}
+
     } catch (error) {
       console.log('Connection error:', error);
       alert('Connection error');

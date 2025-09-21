@@ -5,22 +5,15 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Title must be provided'],
         trim: true,
-        minlength: [3, 'Title should be at least 3 characters long'],
-        maxlength: [100, 'Title should not exceed 100 characters']
+        minlength: [1, 'Title cannot be empty'],
+        maxlength: [200, 'Title should not exceed 200 characters']
     },
     content: {
         type: String,
         required: [true, 'Content cannot be empty'],
-        // REMOVED trim: true to preserve formatting
-        minlength: [5, "Content should be at least 5 characters long"],
-        maxlength: [50000, "Content cannot exceed 50,000 characters"], // Increased limit
-        validate: {
-            validator: function(v) {
-                // Custom validator to handle whitespace-only content
-                return v && v.trim().length >= 5;
-            },
-            message: 'Content must contain at least 5 non-whitespace characters'
-        }
+        // Remove all validation except required
+        minlength: [1, "Content cannot be empty"]
+        // Remove maxlength temporarily to test
     },
     authorId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -34,37 +27,21 @@ const postSchema = new mongoose.Schema({
     },
     tags: {
         type: [String],
-        default: [],
-        validate: {
-            validator: (arr) => arr.length <= 10,
-            message: 'A post cannot have more than 10 tags'
-        }
+        default: []
+        // Remove validation temporarily
     },
     image: {
         type: String,
-        default: '',
-        validate: {
-            validator: val => {
-                return val === '' || /^(https?:\/\/[^\s$.?#].[^\s]*)$/i.test(val);
-            },
-            message: 'Image must be a valid URL'
-        }
+        default: ''
+        // Remove validation temporarily
     },
     likes: {
         type: Number,
-        default: 0,
-        validate: {
-            validator: val => val >= 0,
-            message: 'Likes cannot be negative'
-        }
+        default: 0
     },
     views: {
         type: Number,
-        default: 0,
-        validate: {
-            validator: val => val >= 0,
-            message: 'Views cannot be negative'
-        }
+        default: 0
     }
 }, {
     timestamps: true

@@ -72,38 +72,38 @@ router.get('/:id', async (req, res) => {
 });
 
 
+
 // POST /api/posts - Creating a new post - access:private
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { title, content, tags, image } = req.body;
     
-    // Basic required field check
-    if(!title || !content){
+    // Basic validation
+    if (!title || !content) {
       return res.status(400).json({
-        error:'Title and content are required'
+        error: 'Title and content are required'
       });
     }
 
-    // Check if content has meaningful characters (not just spaces)
-    if(content.trim().length < 5) {
-      return res.status(400).json({
-        error:'Content must contain at least 5 meaningful characters'
-      });
-    }
-
-    // Process tags - handle string or array
+    // Simple tag processing
     let processedTags = [];
     if (tags) {
       if (typeof tags === 'string') {
         processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
       } else if (Array.isArray(tags)) {
-        processedTags = tags.filter(tag => tag && tag.trim());
+        processedTags = tags;
       }
     }
 
+    console.log('Creating post with data:', {
+      title: title.length,
+      content: content.length,
+      tags: processedTags.length
+    });
+
     const newPost = new Post({
-      title: title.trim(), 
-      content, 
+      title,
+      content,
       authorId: req.user._id,
       authorName: req.user.name,
       tags: processedTags,
@@ -113,6 +113,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     const savePost = await newPost.save();
+    console.log('Post saved successfully:', savePost._id);
 
     return res.status(201).json({
       message: 'Post created successfully',
@@ -121,19 +122,24 @@ router.post('/', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Error creating post:', error);
+    console.error('Error details:', error.message);
     
     if (error.name === 'ValidationError') {
+      console.error('Validation errors:', error.errors);
       return res.status(400).json({
         error: 'Validation failed',
-        errors: error.errors
+        errors: error.errors,
+        details: error.message
       });
     }
 
     return res.status(500).json({
-      error: 'Error while creating post'
+      error: 'Error while creating post',
+      details: error.message
     });
   }
 });
+
 
 
 // PUT /api/posts/:id - route for editing the post - access:private
