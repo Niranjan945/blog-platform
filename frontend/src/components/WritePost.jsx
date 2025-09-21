@@ -9,10 +9,12 @@ function WritePost({ onClose, onPostCreated }) {
     tags: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({}); // Add error state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrors({}); // Clear previous errors
 
     try {
       const token = localStorage.getItem('token');
@@ -34,9 +36,23 @@ function WritePost({ onClose, onPostCreated }) {
         onPostCreated();
         onClose();
       } else {
-        alert('Failed to create post');
+        // Handle validation errors
+        const errorData = await response.json();
+        console.log('Error response:', errorData);
+        
+        if (errorData.errors) {
+          // Handle Mongoose validation errors
+          const validationErrors = {};
+          Object.keys(errorData.errors).forEach(field => {
+            validationErrors[field] = errorData.errors[field].message;
+          });
+          setErrors(validationErrors);
+        } else {
+          alert(errorData.error || 'Failed to create post');
+        }
       }
     } catch (error) {
+      console.log('Connection error:', error);
       alert('Connection error');
     } finally {
       setIsSubmitting(false);
@@ -53,28 +69,64 @@ function WritePost({ onClose, onPostCreated }) {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Post title..."
-            value={formData.title}
-            onChange={(e) => setFormData({...formData, title: e.target.value})}
-            required
-          />
+          {/* Title Field */}
+          <div className="form-group">
+            <input
+              type="text"
+              placeholder="Post title..."
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              className={errors.title ? 'error' : ''}
+              required
+            />
+            {errors.title && (
+              <div className="error-message">
+                ⚠️ {errors.title}
+              </div>
+            )}
+            <small className="field-hint">
+              {formData.title.length}/100 characters
+            </small>
+          </div>
           
-          <textarea
-            placeholder="What's on your mind?"
-            value={formData.content}
-            onChange={(e) => setFormData({...formData, content: e.target.value})}
-            required
-            rows="6"
-          ></textarea>
+          {/* Content Field */}
+          <div className="form-group">
+            <textarea
+              placeholder="What's on your mind?"
+              value={formData.content}
+              onChange={(e) => setFormData({...formData, content: e.target.value})}
+              className={errors.content ? 'error' : ''}
+              required
+              rows="6"
+            ></textarea>
+            {errors.content && (
+              <div className="error-message">
+                ⚠️ {errors.content}
+              </div>
+            )}
+            <small className="field-hint">
+              {formData.content.length}/100000 characters
+            </small>
+          </div>
           
-          <input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={formData.tags}
-            onChange={(e) => setFormData({...formData, tags: e.target.value})}
-          />
+          {/* Tags Field */}
+          <div className="form-group">
+            <input
+              type="text"
+              placeholder="Tags (comma separated, max 10)"
+              value={formData.tags}
+              onChange={(e) => setFormData({...formData, tags: e.target.value})}
+              className={errors.tags ? 'error' : ''}
+            />
+            {errors.tags && (
+              <div className="error-message">
+                ⚠️ {errors.tags}
+              </div>
+            )}
+            <small className="field-hint">
+              {formData.tags.split(',').filter(tag => tag.trim()).length}/10 tags
+            </small>
+          </div>
           
           <div className="form-actions">
             <button type="button" onClick={onClose}>Cancel</button>

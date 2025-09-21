@@ -5,41 +5,36 @@ const { mongo, default: mongoose } = require('mongoose');
 
 const router = express.Router();
 
-
 // GET /api/posts - Public: List all posts
 router.get('/', async (req, res) => {
   try {
-    
-
     // Extract and set defaults
-      const page = parseInt(req.query.page) || 1;        
-      const limit = parseInt(req.query.limit) || 10;     
-      const search = req.query.search || '';             
+    const page = parseInt(req.query.page) || 1;        
+    const limit = parseInt(req.query.limit) || 10;     
+    const search = req.query.search || '';             
 
+    // Calculate how many documents to skip
+    const skip = (page - 1) * limit;
 
-   // Calculate how many documents to skip
-      const skip = (page - 1) * limit;
+    // Get paginated posts
+    const allposts = await Post.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-  // Get paginated posts
-      const allposts = await Post.find()
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+    const totalPosts = await Post.countDocuments();
 
-   
-       const totalPosts = await Post.countDocuments();
-
-   return res.status(200).json({
-       message: 'Posts retrieved successfully',
-       posts: allposts,
-       pagination: {
-            currentPage: page,
-            totalPages: Math.ceil(totalPosts / limit),
-            totalPosts: totalPosts,
-            hasNextPage: page < Math.ceil(totalPosts / limit),
-            hasPrevPage: page > 1
-  }
-});
+    return res.status(200).json({
+      message: 'Posts retrieved successfully',
+      posts: allposts,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalPosts / limit),
+        totalPosts: totalPosts,
+        hasNextPage: page < Math.ceil(totalPosts / limit),
+        hasPrevPage: page > 1
+      }
+    });
 
   } catch (error) {
     console.error('Error retrieving posts:', error);
@@ -49,52 +44,45 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/posts/:id - viewing single post - access:public
+router.get('/:id', async (req, res) => {
+  try {
+    // Validating id 
+    const {id} = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id)){
+      return res.status(400).json({ error: 'Invalid post ID' });
+    }
 
-//viewing single post 
-//access:public
-router.get('/:id',async (req,res)=>{
-    try {
-        //validating id 
-        const {id}=req.params;
-        if(!mongoose.Types.ObjectId.isValid(id)){
-            return res.status(400).json({ error: 'Invalid post ID' });
-        }
-
-      const userPost= await Post.findById(id);
-      if (!userPost)
-         {
-          return res.status(404).json({ error: 'Post not found' });
-        }
+    const userPost = await Post.findById(id);
+    if (!userPost) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
 
     return res.status(200).json({
-         message: 'Post retrieved successfully',
-         userPost
-     });
+      message: 'Post retrieved successfully',
+      userPost
+    });
 
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    return res.status(500).json({
+      error: 'Error while retrieving the post'
+    });
+  }
+});
 
-    } catch (error) {
-        console.error('Error fetching post:', error);
-        return res.status(500).json({
-               error: 'Error while retrieving the post'
-        });
-        
-    }
-})
-
-
-//Creating a new post 
-//access:private
-
-router.post('/',authenticateToken, async (req,res)=>{
+// POST /api/posts - Creating a new post - access:private
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { title, content, tags, image } = req.body;
+    
     if(!title || !content){
       return res.status(400).json({
         error:'Title and content are required'
-      })
+      });
     }
 
-    const newPost= new Post({
+    const newPost = new Post({
       title,
       content, 
       authorId: req.user._id,        // From middleware
@@ -108,19 +96,18 @@ router.post('/',authenticateToken, async (req,res)=>{
     const savePost = await newPost.save();
 
     return res.status(201).json({
-       message: 'Post created successfully',
-       post: savePost
-});
+      message: 'Post created successfully',
+      post: savePost
+    });
 
-    
   } catch (error) {
     console.error('Error creating post:', error);
     
-    // Handle validation errors
+    // Handle validation errors - UPDATED TO RETURN PROPER FORMAT
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'Validation failed',
-        details: error.message
+        errors: error.errors  // This will contain field-specific errors
       });
     }
 
@@ -128,115 +115,108 @@ router.post('/',authenticateToken, async (req,res)=>{
     return res.status(500).json({
       error: 'Error while creating post'
     });
-    
   }
-})
+});
 
-//route for editing the post 
-//access:private
-
-router.put('/:id',authenticateToken , async (req,res)=>{
-  
+// PUT /api/posts/:id - route for editing the post - access:private
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const {id} = req.params;
-  const {title, content, tags, image}=req.body;
-  const userId = req.user._id; 
+    const {title, content, tags, image} = req.body;
+    const userId = req.user._id; 
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-  return res.status(400).json({ error: 'Invalid post ID' });
-}
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid post ID' });
+    }
 
-const existingPost = await Post.findById(id);
-if (!existingPost) {
-  return res.status(404).json({ error: 'Post not found' });
-}
+    const existingPost = await Post.findById(id);
+    if (!existingPost) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
 
-// Convert ObjectId to string for comparison
-if (existingPost.authorId.toString() !== userId.toString()) {
-  return res.status(403).json({ 
-    error: 'Forbidden: You can only edit your own posts' 
-  });
-}
+    // Convert ObjectId to string for comparison
+    if (existingPost.authorId.toString() !== userId.toString()) {
+      return res.status(403).json({ 
+        error: 'Forbidden: You can only edit your own posts' 
+      });
+    }
 
-if (!title || !content) {
-  return res.status(400).json({ 
-    error: 'Title and content are required' 
-  });
-}
+    if (!title || !content) {
+      return res.status(400).json({ 
+        error: 'Title and content are required' 
+      });
+    }
 
-const updatedPost = await Post.findByIdAndUpdate(
-  id,
-  {
-    title: title.trim(),
-    content: content.trim(), 
-    tags: tags || existingPost.tags,        // Keep old tags if none provided
-    image: image !== undefined ? image : existingPost.image  // Keep old image if none provided
-  },
-  { 
-    new: true,           // Return updated document
-    runValidators: true  // Run schema validations
-  }
-);
+    const updatedPost = await Post.findByIdAndUpdate(
+      id,
+      {
+        title: title.trim(),
+        content: content.trim(), 
+        tags: tags || existingPost.tags,        // Keep old tags if none provided
+        image: image !== undefined ? image : existingPost.image  // Keep old image if none provided
+      },
+      { 
+        new: true,           // Return updated document
+        runValidators: true  // Run schema validations
+      }
+    );
 
-return res.status(200).json({
-  message: 'Post updated successfully',
-  post: updatedPost
-});
+    return res.status(200).json({
+      message: 'Post updated successfully',
+      post: updatedPost
+    });
 
   } catch (error) {
     console.error('Error updating post:', error);
     
+    // Handle validation errors - UPDATED TO RETURN PROPER FORMAT
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         error: 'Validation failed',
-        details: error.message
+        errors: error.errors  // This will contain field-specific errors
       });
     }
 
     return res.status(500).json({
       error: 'Error while updating post'
     });
-    
   }
 });
 
-
-
-//deleting post 
-//access : private
-router.delete('/:id',authenticateToken,async(req, res)=>{
-   try {
-    const {id}= req.params;
+// DELETE /api/posts/:id - deleting post - access: private
+router.delete('/:id', authenticateToken, async(req, res) => {
+  try {
+    const {id} = req.params;
+    
     if(!mongoose.Types.ObjectId.isValid(id)){
-        return res.status(400).json({
+      return res.status(400).json({
         error:"Invalid postID"
-      })
-   }
+      });
+    }
 
-   const userId = req.user._id;
-   const existingPost = await Post.findById(id);
+    const userId = req.user._id;
+    const existingPost = await Post.findById(id);
     if (!existingPost) {
-        return res.status(404).json({ error: 'Post not found' });
-     }
+      return res.status(404).json({ error: 'Post not found' });
+    }
 
-  if (existingPost.authorId.toString() !== userId.toString()) {
-  return res.status(403).json({ 
-    error: 'Forbidden: You can only delete your own posts' 
-  });
+    if (existingPost.authorId.toString() !== userId.toString()) {
+      return res.status(403).json({ 
+        error: 'Forbidden: You can only delete your own posts' 
+      });
+    }
+
+    await Post.findByIdAndDelete(id);
+    return res.status(200).json({
+      message: 'Post deleted successfully'
+    }); 
+    
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    return res.status(500).json({
+      error: 'Error while deleting post'
+    });
   }
+});
 
-   await Post.findByIdAndDelete(id);
-   return res.status(200).json({
-     message: 'Post deleted successfully'
-   }); 
-   } catch (error) {
-  console.error('Error deleting post:', error);
-  return res.status(500).json({
-    error: 'Error while deleting post'
-  });
-}
-
-
-
-})
 module.exports = router;
