@@ -15,7 +15,7 @@
 |---------|-----|--------|
 | **Frontend** | https://blog-platform-frontend-kappa.vercel.app | ✅ Live |
 | **Backend API** | https://blog-platform-k0qz.onrender.com | ✅ Live |
-| **Health Check** | https://blog-platform-k0qz.onrender.com/health | ✅ Online |
+| **Health Check** | https://blog-platform-k0qz.onrender.com/api/health | ✅ Online |
 
 ---
 
