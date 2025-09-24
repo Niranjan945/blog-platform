@@ -1,7 +1,6 @@
-# Mitt Arv Blog Platform
+# BloGo - Blog Platform
 
 > **Full-Stack Blog Publishing Platform**  
-> *Software Engineering Internship Assignment*
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-success?style=for-the-badge&logo=vercel)](https://blog-platform-frontend-kappa.vercel.app)
 [![API Status](https://img.shields.io/badge/API-Online-green?style=for-the-badge&logo=railway)](https://blog-platform-k0qz.onrender.com)
